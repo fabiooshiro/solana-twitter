@@ -6,7 +6,7 @@ declare_id!("BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W");
 #[program]
 pub mod solana_twitter {
     use super::*;
-    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> ProgramResult {
+    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> Result<()> {
         let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
         let author: &Signer = &ctx.accounts.author;
         let clock: Clock = Clock::get().unwrap();
@@ -27,7 +27,7 @@ pub mod solana_twitter {
         Ok(())
     }
 
-    pub fn update_tweet(ctx: Context<UpdateTweet>, topic: String, content: String) -> ProgramResult {
+    pub fn update_tweet(ctx: Context<UpdateTweet>, topic: String, content: String) -> Result<()> {
         let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
 
         if topic.chars().count() > 50 {
@@ -44,7 +44,7 @@ pub mod solana_twitter {
         Ok(())
     }
 
-    pub fn delete_tweet(_ctx: Context<DeleteTweet>) -> ProgramResult {
+    pub fn delete_tweet(_ctx: Context<DeleteTweet>) -> Result<()> {
         Ok(())
     }
 }
@@ -55,6 +55,8 @@ pub struct SendTweet<'info> {
     pub tweet: Account<'info, Tweet>,
     #[account(mut)]
     pub author: Signer<'info>,
+
+    /// CHECK: no problem at all
     #[account(address = system_program::ID)]
     pub system_program: AccountInfo<'info>,
 }
@@ -96,7 +98,7 @@ impl Tweet {
         + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH; // Content.
 }
 
-#[error]
+#[error_code]
 pub enum ErrorCode {
     #[msg("The provided topic should be 50 characters long maximum.")]
     TopicTooLong,
