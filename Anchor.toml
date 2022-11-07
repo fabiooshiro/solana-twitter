@@ -1,11 +1,11 @@
 [programs.localnet]
-solana_twitter = "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+solana_twitter = "AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE"
 
 [programs.devnet]
-solana_twitter = "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+solana_twitter = "AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE"
 
 [programs.mainnet]
-solana_twitter = "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+solana_twitter = "AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE"
 
 [registry]
 url = "https://anchor.projectserum.com"
