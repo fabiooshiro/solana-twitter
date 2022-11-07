@@ -22,3 +22,7 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## Cartesi
+
+npm i ethers @urql/core @cartesi/rollups @ethersproject/providers --save

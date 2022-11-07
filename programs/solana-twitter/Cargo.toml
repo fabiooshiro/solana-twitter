@@ -15,4 +15,7 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.25.0"
+# anchor-lang = "0.25.0"
+
+# include Cartesi lib
+ctsi_sol = { path = "../../../rollups-examples/solana-adapter/ctsi_sol" }

@@ -1,5 +1,5 @@
-use anchor_lang::prelude::*;
-use anchor_lang::solana_program::system_program;
+use ctsi_sol::anchor_lang::prelude::*;
+use ctsi_sol::anchor_lang::{self, solana_program::system_program};
 
 declare_id!("AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE");
 
