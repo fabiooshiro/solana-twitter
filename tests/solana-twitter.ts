@@ -3,35 +3,45 @@ import { Program } from '@project-serum/anchor';
 import { SolanaTwitter } from '../target/types/solana_twitter';
 import * as assert from "assert";
 import * as bs58 from "bs58";
+import { PublicKey } from '@solana/web3.js';
 
 describe('solana-twitter', () => {
     // Configure the client to use the local cluster.
     anchor.setProvider(anchor.Provider.env());
     const program = anchor.workspace.SolanaTwitter as Program<SolanaTwitter>;
+    let id = 0;
     const sendTweet = async (author, topic, content) => {
-        const tweet = anchor.web3.Keypair.generate();
-        await program.rpc.sendTweet(topic, content, Date.now(), {
+        const userTweetId = `r${id++}`;
+        const tweet = await findTweetAddress(program.provider.wallet.publicKey, userTweetId)
+        await program.rpc.sendTweet(topic, content, userTweetId, {
             accounts: {
                 tweet: tweet.publicKey,
                 author,
                 systemProgram: anchor.web3.SystemProgram.programId,
             },
-            signers: [tweet],
         });
 
         return tweet
     }
 
+    const findTweetAddress = async (author: PublicKey, userTime: string) => {
+        const [publicKey, _bump2] = await PublicKey.findProgramAddress([
+            author.toBuffer(),
+            Buffer.from(userTime),
+        ], program.programId);
+        return { publicKey };
+    }
+
     it('can send a new tweet', async () => {
         // Call the "SendTweet" instruction.
-        const tweet = anchor.web3.Keypair.generate();
-        await program.rpc.sendTweet('veganism', 'Hummus, am I right?', {
+        const userTweetId = Date.now().toString()
+        const tweet = await findTweetAddress(program.provider.wallet.publicKey, userTweetId)
+        await program.rpc.sendTweet('veganism', 'Hummus, am I right?', userTweetId, {
             accounts: {
                 tweet: tweet.publicKey,
                 author: program.provider.wallet.publicKey,
                 systemProgram: anchor.web3.SystemProgram.programId,
             },
-            signers: [tweet],
         });
 
         // Fetch the account details of the created tweet.
@@ -46,14 +56,14 @@ describe('solana-twitter', () => {
 
     it('can send a new tweet without a topic', async () => {
         // Call the "SendTweet" instruction.
-        const tweet = anchor.web3.Keypair.generate();
-        await program.rpc.sendTweet('', 'gm', {
+        const userTweetId = Date.now().toString()
+        const tweet = await findTweetAddress(program.provider.wallet.publicKey, userTweetId)
+        await program.rpc.sendTweet('', 'gm', userTweetId, {
             accounts: {
                 tweet: tweet.publicKey,
                 author: program.provider.wallet.publicKey,
                 systemProgram: anchor.web3.SystemProgram.programId,
             },
-            signers: [tweet],
         });
 
         // Fetch the account details of the created tweet.
@@ -73,14 +83,16 @@ describe('solana-twitter', () => {
         await program.provider.connection.confirmTransaction(signature);
 
         // Call the "SendTweet" instruction on behalf of this other user.
-        const tweet = anchor.web3.Keypair.generate();
-        await program.rpc.sendTweet('veganism', 'Yay Tofu!', {
+        // const tweet = anchor.web3.Keypair.generate();
+        const userTweetId = Date.now().toString()
+        const tweet = await findTweetAddress(otherUser.publicKey, userTweetId)
+        await program.rpc.sendTweet('veganism', 'Yay Tofu!', userTweetId, {
             accounts: {
                 tweet: tweet.publicKey,
                 author: otherUser.publicKey,
                 systemProgram: anchor.web3.SystemProgram.programId,
             },
-            signers: [otherUser, tweet],
+            signers: [otherUser],
         });
 
         // Fetch the account details of the created tweet.
@@ -95,15 +107,16 @@ describe('solana-twitter', () => {
 
     it('cannot provide a topic with more than 50 characters', async () => {
         try {
-            const tweet = anchor.web3.Keypair.generate();
+            const userTweetId = Date.now().toString()
+            const tweet = await findTweetAddress(program.provider.wallet.publicKey, userTweetId)
             const topicWith51Chars = 'x'.repeat(51);
-            await program.rpc.sendTweet(topicWith51Chars, 'Hummus, am I right?', {
+
+            await program.rpc.sendTweet(topicWith51Chars, 'Hummus, am I right?', userTweetId, {
                 accounts: {
                     tweet: tweet.publicKey,
                     author: program.provider.wallet.publicKey,
                     systemProgram: anchor.web3.SystemProgram.programId,
                 },
-                signers: [tweet],
             });
         } catch (error) {
             assert.equal(error.msg, 'The provided topic should be 50 characters long maximum.');
@@ -115,15 +128,15 @@ describe('solana-twitter', () => {
 
     it('cannot provide a content with more than 280 characters', async () => {
         try {
-            const tweet = anchor.web3.Keypair.generate();
+            const userTweetId = Date.now().toString()
+            const tweet = await findTweetAddress(program.provider.wallet.publicKey, userTweetId)
             const contentWith281Chars = 'x'.repeat(281);
-            await program.rpc.sendTweet('veganism', contentWith281Chars, {
+            await program.rpc.sendTweet('veganism', contentWith281Chars, userTweetId, {
                 accounts: {
                     tweet: tweet.publicKey,
                     author: program.provider.wallet.publicKey,
                     systemProgram: anchor.web3.SystemProgram.programId,
                 },
-                signers: [tweet],
             });
         } catch (error) {
             assert.equal(error.msg, 'The provided content should be 280 characters long maximum.');

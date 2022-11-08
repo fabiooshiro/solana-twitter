@@ -6,7 +6,7 @@ declare_id!("AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE");
 #[program]
 pub mod solana_twitter {
     use super::*;
-    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String, user_time: i64) -> Result<()> {
+    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String, _user_tweet_id: String) -> Result<()> {
         let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
         let author: &Signer = &ctx.accounts.author;
         let clock: Clock = Clock::get().unwrap();
@@ -50,12 +50,12 @@ pub mod solana_twitter {
 }
 
 #[derive(Accounts)]
-#[instruction(topic: String, content: String, user_time: i64)]
+#[instruction(topic: String, content: String, user_tweet_id: String)]
 pub struct SendTweet<'info> {
     #[account(init, payer = author, space = Tweet::LEN,
         seeds=[
             author.key().as_ref(),
-            &user_time.to_be_bytes(),
+            &user_tweet_id.as_bytes(),
         ],
         bump,
     )]
