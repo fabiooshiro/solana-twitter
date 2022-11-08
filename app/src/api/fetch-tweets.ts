@@ -47,8 +47,9 @@ export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) 
 
     const pageCb = async (page, paginatedPublicKeys) => {
         const { program } = await useWorkspace()
+        console.log({paginatedPublicKeys: paginatedPublicKeys.map(pk => pk.toBase58())})
         const tweets = await program.account.tweet.fetchMultiple(paginatedPublicKeys)
-
+        console.log({tweets})
         return tweets.reduce((accumulator, tweet, index) => {
             const publicKey = paginatedPublicKeys[index]
             accumulator.push(new Tweet(publicKey, tweet))

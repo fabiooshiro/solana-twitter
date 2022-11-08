@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { AccountInfo, clusterApiUrl, Commitment, ConfirmOptions, Connection, GetAccountInfoConfig, Keypair, PublicKey, RpcResponseAndContext, SendOptions, SerializeConfig, SignatureResult, Signer, SystemProgram, Transaction, TransactionSignature } from "@solana/web3.js";
+import { AccountInfo, clusterApiUrl, Commitment, ConfirmOptions, Connection, GetAccountInfoConfig, GetMultipleAccountsConfig, GetProgramAccountsConfig, Keypair, PublicKey, RpcResponseAndContext, SendOptions, SerializeConfig, SignatureResult, Signer, SystemProgram, Transaction, TransactionSignature } from "@solana/web3.js";
 import { Buffer } from 'buffer';
 import { ContractReceipt, ethers } from 'ethers';
 import { InputAddedEvent } from "@cartesi/rollups/dist/src/types/contracts/interfaces/IInput";
@@ -268,7 +268,7 @@ class ConnectionAdapter extends Connection {
     async requestAirdrop(
         toPubkey: PublicKey,
         lamports: number,
-      ): Promise<TransactionSignature> {
+    ): Promise<TransactionSignature> {
 
         // Public Key that give me SOL on devnet
         // https://explorer.solana.com/tx/4aTCJyxNstBdxEJmH2CiTeBghMusTQ66ox7iGPMARSUoiKjBCsAvKwAuJa2kcAn2kJuyCpc9pyrhfTwZs8Zkfn6r?cluster=devnet
@@ -284,14 +284,22 @@ class ConnectionAdapter extends Connection {
 
         // TODO: dummy
         return "z3U6bsqf2RypqPYsng5mne5mBoQbrsUnT7RWyGuUz76ssq21QbmLrjh7Am6urSdceqhCWdp2CzJShEG2JB4aqcA";
-      }
+    }
+
+    getMultipleAccountsInfo(
+        publicKeys: PublicKey[],
+        commitmentOrConfig?: Commitment | GetMultipleAccountsConfig,
+    ): Promise<(AccountInfo<Buffer> | null)[]> {
+        const promises = publicKeys.map(pk => this.getAccountInfo(pk));
+        return Promise.all(promises);
+    }
 
     async getAccountInfo(
         publicKey: PublicKey,
         _commitmentOrConfig?: Commitment | GetAccountInfoConfig,
     ): Promise<AccountInfo<Buffer> | null> {
         const baseURL = this.getInspectBaseURL();
-        const url = `${baseURL}/${publicKey.toBase58()}`;
+        const url = `${baseURL}/accountInfo/${publicKey.toBase58()}`;
         console.log('Cartesi inspect url', url);
         const resp = await axios.get(url.toString());
         const cartesiResponse = resp.data;
@@ -309,6 +317,43 @@ class ConnectionAdapter extends Connection {
             executable: false, // pode ser que seja executavel
             lamports: +infoData.lamports,
         };
+    }
+
+    async getProgramAccounts(
+        programId: PublicKey,
+        _configOrCommitment?: GetProgramAccountsConfig | Commitment,
+    ): Promise<
+        Array<{
+            pubkey: PublicKey;
+            account: AccountInfo<Buffer>;
+        }>
+    > {
+        const baseURL = this.getInspectBaseURL();
+        const url = `${baseURL}/programAccounts/${programId.toBase58()}`;
+        console.log('Cartesi inspect url', url);
+        const resp = await axios.get(url.toString());
+        const cartesiResponse = resp.data;
+        if (!cartesiResponse.reports || !cartesiResponse.reports.length) {
+            //console.log('Fallback to solana getAccountInfo')
+            //return super.getAccountInfo(publicKey, commitmentOrConfig);
+            return [];
+        }
+        const accounts = cartesiResponse.reports.map(report => {
+            const jsonString = ethers.utils.toUtf8String(report.payload);
+            const infoData = JSON.parse(jsonString);
+            // console.log({ [publicKey.toBase58()]: infoData })
+            return {
+                pubkey: new PublicKey(infoData.key),
+                account: {
+                    owner: new PublicKey(infoData.owner),
+                    data: Buffer.from(infoData.data, 'base64'),
+                    executable: false, // pode ser que seja executavel
+                    lamports: +infoData.lamports,
+                }
+            };
+        })
+
+        return accounts
     }
 }
 
