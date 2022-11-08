@@ -7,7 +7,7 @@ export const usePagination = (perPage, prefetchCb, pageCb) => {
     const pageLoading = ref(false);
     const loading = computed(() => prefetchLoading.value || pageLoading.value);
 
-    let prefetchPromise = null
+    let prefetchPromise
 
     const prefetch = () => {
         prefetchPromise = (async () => {

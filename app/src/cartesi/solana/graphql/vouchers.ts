@@ -82,7 +82,7 @@ export const getVouchers = async (
             // builds return vouchers array by concatenating each input's vouchers
             let ret: PartialVoucher[] = [];
             const inputs = data.epoch.inputs.nodes;
-            for (let input of inputs) {
+            for (const input of inputs) {
                 ret = ret.concat(
                     input.vouchers.nodes.filter(
                         isPartialVoucher

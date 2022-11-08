@@ -10,7 +10,7 @@ describe('solana-twitter', () => {
     const program = anchor.workspace.SolanaTwitter as Program<SolanaTwitter>;
     const sendTweet = async (author, topic, content) => {
         const tweet = anchor.web3.Keypair.generate();
-        await program.rpc.sendTweet(topic, content, {
+        await program.rpc.sendTweet(topic, content, Date.now(), {
             accounts: {
                 tweet: tweet.publicKey,
                 author,

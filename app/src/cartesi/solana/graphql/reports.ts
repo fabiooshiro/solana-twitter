@@ -90,7 +90,7 @@ export const getReports = async (
             // builds return reports array by concatenating each input's reports
             let ret: PartialReport[] = [];
             const inputs = data.epoch.inputs.nodes;
-            for (let input of inputs) {
+            for (const input of inputs) {
                 ret = ret.concat(
                     input.reports.nodes.filter(isPartialReport)
                 );

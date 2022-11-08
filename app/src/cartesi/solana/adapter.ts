@@ -16,9 +16,9 @@ import erc1155 from './models/MyERC1155NFT.json';
 import axios from "axios";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-const console = {
-    log: (..._args: any[]) => {}
-};
+//const console = {
+//    log: (..._args: any[]) => {}
+//};
 const DEFAULT_REPORT_URL = `http://127.0.0.1:4000/graphql`;
 export const programID = new PublicKey(idl.metadata.address);
 const encoder = new TextEncoder()
@@ -133,9 +133,9 @@ class AnchorProviderAdapter extends AnchorProvider {
         ).blockhash;
 
         tx = await this.wallet.signTransaction(tx);
-        (signers ?? []).forEach((kp) => {
-            tx.partialSign(kp);
-        });
+        //(signers ?? []).forEach((kp) => {
+        //    tx.partialSign(kp);
+        //});
 
         const rawTx = tx.serialize();
         const payload = toBuffer(rawTx).toString('base64');
@@ -343,8 +343,9 @@ export function getProvider(signer?: ethers.Signer) {
     return { provider, wallet, connection };
 }
 
-export async function getProgram(signer?: ethers.Signer) {
+export async function getProgram(signer?: ethers.Signer, idl?: any) {
     const { provider, wallet, connection } = getProvider(signer);
+    const programID = new PublicKey(idl.metadata.address);
     const program = new anchor.Program(idl as any, programID, provider) as Program<Solzen>;
     if (signer) {
         const ethAddress = await signer.getAddress();
@@ -356,7 +357,7 @@ export async function getProgram(signer?: ethers.Signer) {
 }
 
 export async function getBalanceNFT(signer: ethers.Signer) {
-    let contract = new ethers.Contract("0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E", erc1155.abi, signer);
+    const contract = new ethers.Contract("0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E", erc1155.abi, signer);
     return await contract.balanceOf(await signer.getAddress(), 1);
 }
 

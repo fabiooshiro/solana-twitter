@@ -83,7 +83,7 @@ export const getNotices = async (
             // builds return notices array by concatenating each input's notices
             let ret: PartialNotice[] = [];
             const inputs = data.epoch.inputs.nodes;
-            for (let input of inputs) {
+            for (const input of inputs) {
                 ret = ret.concat(
                     input.notices.nodes.filter(isPartialNotice)
                 );
