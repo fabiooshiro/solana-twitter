@@ -8,7 +8,7 @@
         {
           "name": "tweet",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "author",
@@ -28,6 +28,10 @@
         },
         {
           "name": "content",
+          "type": "string"
+        },
+        {
+          "name": "userTweetId",
           "type": "string"
         }
       ]
