@@ -15,6 +15,7 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
+# remove original anchor
 # anchor-lang = "0.25.0"
 
 # include Cartesi lib

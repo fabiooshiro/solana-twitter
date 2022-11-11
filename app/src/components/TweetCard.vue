@@ -11,7 +11,7 @@ const props = defineProps({
 
 const { tweet } = toRefs(props)
 const { wallet } = useWorkspace()
-const isMyTweet = computed(() => wallet && wallet.publicKey.toBase58() === tweet.value.author.toBase58())
+const isMyTweet = computed(() => wallet && wallet.value?.publicKey?.toBase58() === tweet.value.author.toBase58())
 const authorRoute = computed(() => {
     if (isMyTweet.value) {
         return { name: 'Profile' }

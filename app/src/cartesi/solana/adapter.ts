@@ -378,25 +378,31 @@ export function convertEthAddress2Solana(ethereumAddress: string) {
     return pubkey;
 }
 
+export function getConnection(commitment) {
+    const network = clusterApiUrl('devnet');
+    return new ConnectionAdapter(network, commitment);
+}
+
 export function getProvider(signer?: ethers.Signer) {
     const commitment = 'processed';
-    const network = clusterApiUrl('devnet');
-    const connection = new ConnectionAdapter(network, commitment);
+    const connection = getConnection(commitment);
     const wallet = new AdaptedWallet();
     const provider = new AnchorProviderAdapter(connection, wallet, { commitment });
     provider.etherSigner = signer;
     return { provider, wallet, connection };
 }
 
-export async function getProgram(signer?: ethers.Signer, idl?: any) {
+export function getProgram(signer?: ethers.Signer, idl?: any) {
     const { provider, wallet, connection } = getProvider(signer);
     const programID = new PublicKey(idl.metadata.address);
     const program = new anchor.Program(idl as any, programID, provider) as Program<Solzen>;
     if (signer) {
-        const ethAddress = await signer.getAddress();
-        wallet.publicKey = convertEthAddress2Solana(ethAddress);
-        connection.wallet = wallet;
-        connection.etherSigner = signer;
+        (async () => {
+            const ethAddress = await signer.getAddress();
+            wallet.publicKey = convertEthAddress2Solana(ethAddress);
+            connection.wallet = wallet;
+            connection.etherSigner = signer;
+        })()
     }
     return { program, provider, wallet, connection }
 }

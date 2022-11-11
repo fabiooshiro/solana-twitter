@@ -5,23 +5,22 @@ import { BN } from '@project-serum/anchor'
 import { computed, ref } from 'vue'
 
 export const fetchTweets = async (filters = []) => {
-    const { program } = await useWorkspace()
+    const { program } = useWorkspace()
     const tweets = await program.value.account.tweet.all(filters);
     return tweets.map(tweet => new Tweet(tweet.publicKey, tweet.account))
 }
 
 export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) => {}) => {
     filters = ref(filters) as any
-    
+    const { program, connection } = useWorkspace()
     const page = ref(0)
 
     const prefetchCb = async () => {
-        const { program, connection } = await useWorkspace()
         // Reset page number.
         page.value = 0
 
         // Prepare the discriminator filter.
-        const tweetClient = program.account.tweet
+        const tweetClient = program.value.account.tweet
         const tweetAccountName = tweetClient._idlAccount.name
         const tweetDiscriminatorFilter = {
             memcmp: tweetClient.coder.accounts.memcmp(tweetAccountName)
@@ -29,7 +28,7 @@ export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) 
 
         const anyFilters = filters as any
         // Prefetch all tweets with their timestamps only.
-        const allTweets = await connection.getProgramAccounts(program.programId, {
+        const allTweets = await connection.getProgramAccounts(program.value.programId, {
             filters: [tweetDiscriminatorFilter, ...anyFilters.value],
             dataSlice: { offset: 40, length: 8 },
         })
@@ -46,10 +45,7 @@ export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) 
     }
 
     const pageCb = async (page, paginatedPublicKeys) => {
-        const { program } = await useWorkspace()
-        console.log({paginatedPublicKeys: paginatedPublicKeys.map(pk => pk.toBase58())})
-        const tweets = await program.account.tweet.fetchMultiple(paginatedPublicKeys)
-        console.log({tweets})
+        const tweets = await program.value.account.tweet.fetchMultiple(paginatedPublicKeys)
         return tweets.reduce((accumulator, tweet, index) => {
             const publicKey = paginatedPublicKeys[index]
             accumulator.push(new Tweet(publicKey, tweet))

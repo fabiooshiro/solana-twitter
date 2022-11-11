@@ -1,7 +1,12 @@
+/*
+use anchor_lang::prelude::*;
+use anchor_lang::{self, solana_program::system_program};
+// */
+//*
 use ctsi_sol::anchor_lang::prelude::*;
 use ctsi_sol::anchor_lang::{self, solana_program::system_program};
-
-declare_id!("AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE");
+// */
+declare_id!("6Cknn14FunFsPTS9A3kRkWdMGrgwzYGzDMPnT1YGQ1Gt");
 
 #[program]
 pub mod solana_twitter {

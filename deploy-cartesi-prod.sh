@@ -11,4 +11,3 @@ docker run \
     ./build-prod.sh
 
 
-cp ./target/riscv64ima-cartesi-linux-gnu/release/solana-twitter ../rollups-examples/solana-adapter/solana_smart_contract_bin/AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE
