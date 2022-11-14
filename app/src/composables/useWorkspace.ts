@@ -3,8 +3,9 @@ import { useAnchorWallet } from 'solana-wallets-vue'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { AnchorProvider, Program } from '@project-serum/anchor'
 import { ethers } from "ethers";
-import idl from '@/idl/solana_twitter.json'
+import idl from '@/anchor/idl/solana_twitter.json'
 import { getProgram } from '../cartesi/solana/adapter';
+import { SolanaTwitter } from '@/anchor/types/solana_twitter';
 
 const clusterUrl = process.env.VUE_APP_CLUSTER_URL as any
 const preflightCommitment = 'processed'
@@ -35,7 +36,7 @@ function createWorkspace() {
         return new AnchorProvider(connection, (wallet.value || {}) as any, { preflightCommitment, commitment })
     })
     const program = computed(() => {
-        return new Program(idl as any, programID, provider.value)
+        return new Program<SolanaTwitter>(idl as any, programID, provider.value)
     })
 
     workspace = {
@@ -65,7 +66,7 @@ async function connectWallet() {
     const signer = provider.getSigner()
 
     console.log("Signer", signer);
-    const { program, provider: providerEth, wallet } = getProgram(signer, idl)
+    const { program, provider: providerEth, wallet } = getProgram<SolanaTwitter>(signer, idl)
     workspace.wallet.value = wallet;
     workspace.program.value = program;
     workspace.provider.value = providerEth;
@@ -73,7 +74,7 @@ async function connectWallet() {
 
 function createAdaptedWorkspace() {
     try {
-        const { connection, program, provider: providerEth, wallet } = getProgram(undefined, idl)
+        const { connection, program, provider: providerEth, wallet } = getProgram<SolanaTwitter>(undefined, idl)
 
         workspace = {
             wallet: ref(wallet),

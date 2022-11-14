@@ -6,8 +6,7 @@ import { InputAddedEvent } from "@cartesi/rollups/dist/src/types/contracts/inter
 
 import * as anchor from "@project-serum/anchor";
 import idl from './models/solzen.json';
-import { AnchorProvider, Program } from "@project-serum/anchor";
-import { Solzen } from "./models/solzen";
+import { AnchorProvider, Idl, Program } from "@project-serum/anchor";
 import { Wallet } from "@project-serum/anchor/dist/cjs/provider";
 import { cartesiRollups } from "../utils/cartesi";
 import { getReports } from "./graphql/reports";
@@ -392,10 +391,10 @@ export function getProvider(signer?: ethers.Signer) {
     return { provider, wallet, connection };
 }
 
-export function getProgram(signer?: ethers.Signer, idl?: any) {
+export function getProgram<T extends Idl>(signer?: ethers.Signer, idl?: any) {
     const { provider, wallet, connection } = getProvider(signer);
     const programID = new PublicKey(idl.metadata.address);
-    const program = new anchor.Program(idl as any, programID, provider) as Program<Solzen>;
+    const program = new anchor.Program(idl as any, programID, provider) as Program<T>;
     if (signer) {
         (async () => {
             const ethAddress = await signer.getAddress();
