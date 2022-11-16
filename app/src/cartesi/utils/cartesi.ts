@@ -21,7 +21,7 @@ interface Contracts {
     erc20Portal: ERC20PortalFacet;
 }
 
-const contractAddress = '0xF119CC4Ed90379e5E0CC2e5Dd1c8F8750BAfC812';
+const contractAddress = '0xF8C694fd58360De278d5fF2276B7130Bfdc0192A';
 
 /**
  * Connect to instance of Rollups application
@@ -33,7 +33,7 @@ const contractAddress = '0xF119CC4Ed90379e5E0CC2e5Dd1c8F8750BAfC812';
  export const cartesiRollups = async (
     provider: Provider | Signer
 ): Promise<Contracts> => {
-    // connect to contracts
+    console.log(`connect to contracts address=${contractAddress}`);
     const inputContract = InputFacet__factory.connect(contractAddress, provider);
     const outputContract = OutputFacet__factory.connect(contractAddress, provider);
     const erc20Portal = ERC20PortalFacet__factory.connect(contractAddress, provider);
