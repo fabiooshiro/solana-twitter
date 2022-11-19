@@ -64,12 +64,12 @@ async function connectWallet() {
     // send ether and pay to change state within the blockchain.
     // For this, you need the account signer...
     const signer = provider.getSigner()
-
     console.log("Signer", signer);
     const { program, provider: providerEth, wallet } = getProgram<SolanaTwitter>(signer, idl)
     workspace.wallet.value = wallet;
     workspace.program.value = program;
     workspace.provider.value = providerEth;
+    workspace.signer = signer;
 }
 
 function createAdaptedWorkspace() {

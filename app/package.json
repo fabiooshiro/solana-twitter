@@ -15,6 +15,7 @@
     "@cartesi/rollups": "^0.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@project-serum/anchor": "^0.25.0",
+    "@solana/spl-token": "^0.3.6",
     "@solana/wallet-adapter-wallets": "^0.15.4",
     "@solana/web3.js": "1.30.2",
     "@urql/core": "^3.0.5",

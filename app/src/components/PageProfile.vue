@@ -1,31 +1,138 @@
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
+import { ethers } from "ethers";
 import { paginateTweets, authorFilter } from '@/api'
 import TweetForm from '@/components/TweetForm'
 import TweetList from '@/components/TweetList'
 import { useWorkspace } from '@/composables'
+import { cartesiRollups } from '@/cartesi/utils/cartesi'
+import { IERC20__factory } from "@cartesi/rollups";
+
+import { convertEthAddress2Solana } from '@/cartesi/solana/adapter'
+import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
+//import { PublicKey } from '@solana/web3.js';
 
 const tweets = ref([])
-const { wallet } = useWorkspace()
+const { wallet, connection } = useWorkspace()
+
 const filters = ref([])
 
 const onNewPage = newTweets => tweets.value.push(...newTweets)
 const { prefetch, hasNextPage, getNextPage, loading } = paginateTweets(filters, 10, onNewPage)
 
+const token = ref('0x67d269191c92Caf3cD7723F116c85e6E9bf55933')
+//const token = ref('')
+
 watchEffect(() => {
-    if (! wallet.value) return
+    if (!wallet.value) return
+    loadBalance(token.value, connection, wallet)
     tweets.value = []
     filters.value = [authorFilter(wallet.value.publicKey.toBase58())]
     prefetch().then(getNextPage)
 })
 
+const amount = ref(0)
+const effectiveToken = computed(() => {
+    loadBalance(token.value, connection, wallet)
+    return token.value
+})
+
+const effectiveAmount = computed(() => amount.value)
 const addTweet = tweet => tweets.value.push(tweet)
+const canTweet = computed(() => true)
+const solanaTokenAmount = ref(0)
+const ethersTokenAmount = ref(0)
+
+async function loadBalance(ethTokenAddress, connection) {
+    if (ethTokenAddress.length != 42) {
+        return
+    }
+    const { signer } = useWorkspace()
+    if (!signer) {
+        console.log('no signer')
+        return
+    }
+    console.log('load token balance')
+
+    const mint = convertEthAddress2Solana(ethTokenAddress)
+    const address = await signer.getAddress()
+    const owner = convertEthAddress2Solana(address)
+    console.log({ owner, mint })
+    const ata = await getAssociatedTokenAddress(mint, owner, true)
+    console.log({ ata: ata.toString() })
+    const tokenAccountInfo = await getAccount(
+        connection,
+        ata
+    )
+    solanaTokenAmount.value = tokenAccountInfo.amount
+
+    const erc20Contract = IERC20__factory.connect(
+        ethTokenAddress,
+        signer
+    );
+    const balance = await erc20Contract.balanceOf(address)
+    ethersTokenAmount.value = balance
+}
+
+async function send() {
+    const { signer } = useWorkspace()
+    console.log({ signer: signer })
+    const { erc20Portal } = await cartesiRollups(signer)
+    const erc20Amount = ethers.BigNumber.from(amount.value);
+    const signerAddress = await signer.getAddress()
+    const erc20Address = token.value
+    const erc20Contract = IERC20__factory.connect(
+        erc20Address,
+        signer
+    );
+    const allowance = await erc20Contract.allowance(
+        signerAddress,
+        erc20Portal.address
+    );
+    if (allowance.lt(erc20Amount)) {
+        const allowanceApproveAmount =
+            ethers.BigNumber.from(erc20Amount).sub(allowance);
+        console.log(
+            `approving allowance of ${allowanceApproveAmount} tokens...`
+        );
+        const tx = await erc20Contract.approve(
+            erc20Portal.address,
+            allowanceApproveAmount
+        );
+        await tx.wait();
+    }
+    const tx = await erc20Portal.erc20Deposit(erc20Address, erc20Amount, "0x")
+    console.log('Sending', erc20Portal)
+    console.log(`transaction: ${tx.hash}`);
+    console.log("waiting for confirmation...");
+    const receipt = await tx.wait();
+    console.log({ receipt })
+}
 </script>
 
 <template>
     <div v-if="wallet" class="border-b px-8 py-4 bg-gray-50 break-all">
         {{ wallet.publicKey.toBase58() }}
     </div>
+    <div class="border-b px-8 py-4 break-all">
+        <input type="text" placeholder="token" class="text-pink-500 rounded-full pl-10 pr-4 py-2 bg-gray-100"
+            :value="effectiveToken" @input="token = $event.target.value">
+        <div class="py-4 break-all">
+            <input type="text" placeholder="amount" class="text-pink-500 rounded-full pl-10 pr-4 py-2 bg-gray-100"
+                :value="effectiveAmount" @input="amount = $event.target.value">
+        </div>
+        <button class="text-white px-4 py-2 rounded-full font-semibold" :disabled="!canTweet"
+            :class="canTweet ? 'bg-pink-500' : 'bg-pink-300 cursor-not-allowed'" @click="send">
+            Transfer from L1 to L2
+        </button>
+        <div class="px-6 py-4 break-all">
+            L1 amount: {{ ethersTokenAmount }}
+        </div>
+        <div class="px-6 break-all">
+            L2 amount: {{ solanaTokenAmount }}
+        </div>
+    </div>
+
     <tweet-form @added="addTweet"></tweet-form>
     <tweet-list v-model:tweets="tweets" :loading="loading" :has-more="hasNextPage" @more="getNextPage"></tweet-list>
 </template>
