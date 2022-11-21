@@ -7,6 +7,7 @@ import TweetList from '@/components/TweetList'
 import { useWorkspace } from '@/composables'
 import { cartesiRollups } from '@/cartesi/utils/cartesi'
 import { IERC20__factory } from "@cartesi/rollups";
+import * as anchor from "@project-serum/anchor";
 
 import { convertEthAddress2Solana } from '@/cartesi/solana/adapter'
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
@@ -76,11 +77,10 @@ async function loadBalance(ethTokenAddress, connection) {
 
 async function send() {
     const { signer } = useWorkspace()
-    console.log({ signer: signer })
     const { erc20Portal } = await cartesiRollups(signer)
     const erc20Amount = ethers.BigNumber.from(amount.value);
-    const signerAddress = await signer.getAddress()
-    const erc20Address = token.value
+    const signerAddress = await signer.getAddress();
+    const erc20Address = token.value;
     const erc20Contract = IERC20__factory.connect(
         erc20Address,
         signer
@@ -108,6 +108,32 @@ async function send() {
     const receipt = await tx.wait();
     console.log({ receipt })
 }
+
+async function doVoucher() {
+    console.log('Creating voucher...');
+    const { signer } = useWorkspace()
+    const { inputContract } = await cartesiRollups(signer)
+    const {
+        keccak256
+    } = require("@ethersproject/keccak256");
+    const header = keccak256(ethers.utils.toUtf8Bytes("Create ERC-20 Voucher"))
+    const headerBytes = ethers.utils.arrayify(header)
+    const erc20Amount = new anchor.BN(amount.value);
+    const amountBytes = erc20Amount.toArrayLike(Buffer, 'be', 8);
+    const erc20Bytes = ethers.utils.arrayify(token.value)
+    console.log(header, headerBytes)
+    // info: amount, erc20 address
+    const inputBytes = Buffer.from([
+        ...headerBytes,
+        ...amountBytes,
+        ...erc20Bytes,
+    ]);
+    console.log(ethers.utils.hexlify(inputBytes));
+    const tx = await inputContract.addInput(inputBytes);
+    const receipt = await tx.wait(1);
+    console.log('Receipt', receipt);
+}
+
 </script>
 
 <template>
@@ -121,9 +147,13 @@ async function send() {
             <input type="text" placeholder="amount" class="text-pink-500 rounded-full pl-10 pr-4 py-2 bg-gray-100"
                 :value="effectiveAmount" @input="amount = $event.target.value">
         </div>
-        <button class="text-white px-4 py-2 rounded-full font-semibold" :disabled="!canTweet"
+        <button style="margin-right: 7px;" class="text-white px-4 py-2 rounded-full font-semibold" :disabled="!canTweet"
             :class="canTweet ? 'bg-pink-500' : 'bg-pink-300 cursor-not-allowed'" @click="send">
             Transfer from L1 to L2
+        </button>
+        <button class="text-white px-4 py-2 rounded-full font-semibold" :disabled="!canTweet"
+            :class="canTweet ? 'bg-pink-500' : 'bg-pink-300 cursor-not-allowed'" @click="doVoucher">
+            Get Voucher
         </button>
         <div class="px-6 py-4 break-all">
             L1 amount: {{ ethersTokenAmount }}
