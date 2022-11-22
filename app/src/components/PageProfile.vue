@@ -8,6 +8,7 @@ import { useWorkspace } from '@/composables'
 import { cartesiRollups } from '@/cartesi/utils/cartesi'
 import { IERC20__factory } from "@cartesi/rollups";
 import * as anchor from "@project-serum/anchor";
+import { loadVouchers, executeVoucher } from "@/cartesi/utils/vouchers";
 
 import { convertEthAddress2Solana } from '@/cartesi/solana/adapter'
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
@@ -23,13 +24,15 @@ const { prefetch, hasNextPage, getNextPage, loading } = paginateTweets(filters, 
 
 const token = ref('0x67d269191c92Caf3cD7723F116c85e6E9bf55933')
 //const token = ref('')
+const vouchers = ref([])
 
 watchEffect(() => {
-    if (!wallet.value) return
-    loadBalance(token.value, connection, wallet)
-    tweets.value = []
-    filters.value = [authorFilter(wallet.value.publicKey.toBase58())]
-    prefetch().then(getNextPage)
+    if (!wallet.value) return;
+    loadBalance(token.value, connection, wallet);
+    listVouchers();
+    tweets.value = [];
+    filters.value = [authorFilter(wallet.value.publicKey.toBase58())];
+    prefetch().then(getNextPage);
 })
 
 const amount = ref(0)
@@ -58,7 +61,7 @@ async function loadBalance(ethTokenAddress, connection) {
     const mint = convertEthAddress2Solana(ethTokenAddress)
     const address = await signer.getAddress()
     const owner = convertEthAddress2Solana(address)
-    console.log({ owner, mint })
+    // console.log({ owner, mint })
     const ata = await getAssociatedTokenAddress(mint, owner, true)
     console.log({ ata: ata.toString() })
     const tokenAccountInfo = await getAccount(
@@ -109,7 +112,7 @@ async function send() {
     console.log({ receipt })
 }
 
-async function doVoucher() {
+async function emitVoucher() {
     console.log('Creating voucher...');
     const { signer } = useWorkspace()
     const { inputContract } = await cartesiRollups(signer)
@@ -134,6 +137,25 @@ async function doVoucher() {
     console.log('Receipt', receipt);
 }
 
+async function listVouchers() {
+    const url = 'http://localhost:4000/graphql';
+    vouchers.value = await loadVouchers(url, {})
+    console.log(vouchers.value)
+}
+
+async function execVoucher(id) {
+    console.log(`execute voucher ${id}`);
+    const { signer } = useWorkspace();
+    await executeVoucher(signer, id);
+}
+
+function mask(address) {
+    if (!address || typeof address !== 'string') {
+        return ''
+    }
+    return address.substring(0, 6) + '..' + address.substring(address.length - 4);
+}
+
 </script>
 
 <template>
@@ -152,8 +174,8 @@ async function doVoucher() {
             Transfer from L1 to L2
         </button>
         <button class="text-white px-4 py-2 rounded-full font-semibold" :disabled="!canTweet"
-            :class="canTweet ? 'bg-pink-500' : 'bg-pink-300 cursor-not-allowed'" @click="doVoucher">
-            Get Voucher
+            :class="canTweet ? 'bg-pink-500' : 'bg-pink-300 cursor-not-allowed'" @click="emitVoucher">
+            Emit Voucher
         </button>
         <div class="px-6 py-4 break-all">
             L1 amount: {{ ethersTokenAmount }}
@@ -161,6 +183,31 @@ async function doVoucher() {
         <div class="px-6 break-all">
             L2 amount: {{ solanaTokenAmount }}
         </div>
+        <table style="margin-top: 7px;">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>token</th>
+                    <th>recipient</th>
+                    <th>amount</th>
+                    <th>#</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="voucher in vouchers" :key="voucher.id">
+                    <td>{{ voucher.id }}</td>
+                    <td>{{ mask(voucher.destination) }}</td>
+                    <td>{{ mask(voucher.extra?.recipient) }}</td>
+                    <td>{{ voucher.extra?.amount?.toString() }}</td>
+                    <td>
+                        <button class="text-white px-4 py-2 rounded-full font-semibold bg-pink-500" @click="() => execVoucher(voucher.id)">
+                            Exec
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
     </div>
 
     <tweet-form @added="addTweet"></tweet-form>
