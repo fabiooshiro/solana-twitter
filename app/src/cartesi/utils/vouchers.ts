@@ -1,12 +1,53 @@
 import { InputKeys } from "../solana/graphql/reports";
-import { getVoucher, getVouchers } from "../solana/graphql/vouchers";
+import { getVoucher } from "../solana/graphql/vouchers";
 import { ethers, Signer } from "ethers";
 import { cartesiRollups } from "./cartesi";
 import { OutputValidityProofStruct } from "@cartesi/rollups/dist/src/types/contracts/interfaces/IOutput";
+import { createClient, defaultExchanges, gql } from '@urql/core';
+import fetch from "cross-fetch";
+
+const VouchersQuery = gql`
+  query listVouchers($first: Int, $last: Int, $after: String, $before: String, $where: VoucherFilter) {
+    vouchers(first: $first, last: $last, after: $after, before: $before, where: $where) {
+        nodes {
+            id
+            proof {
+                outputHashesRootHash
+            }
+            destination
+            payload
+        }
+        pageInfo {
+            startCursor
+            endCursor
+            hasNextPage
+            hasPreviousPage
+        }
+    }
+  }
+`;
+
 
 const DEFAULT_GRAPHQL_URL = 'http://localhost:4000/graphql'
 
+async function getVouchersWithProof(url: string, _inputKeys: InputKeys) {
+    const client = createClient({ url, exchanges: defaultExchanges, fetch });
+    const result = await client.query(VouchersQuery, {
+        //// pagination parameters
+        // first: 10,
+        // last: 1,
+        // after: "1",
+        // before: "3",
+        // where: {
+            //// 2011 nov 22 its not implemented
+            // destination: '0x123'
+        // }
+    }).toPromise();
+    return result.data?.vouchers?.nodes || [];
+}
+
 function isERC20Transfer(payload: string) {
+    // first 4 bytes of keccak 256 hash of ERC-20 transfer method
     return payload?.startsWith('0xa9059cbb')
 }
 
@@ -30,12 +71,12 @@ function decodeERC20Transfer(payload: string) {
 }
 
 export async function loadVouchers(url: string, inputKeys: InputKeys) {
-    const vouchers = await getVouchers(url, inputKeys);
+    const vouchers = await getVouchersWithProof(url, inputKeys);
 
     return vouchers.map(voucher => {
         let extra: any = {};
         if (isERC20Transfer(voucher.payload)) {
-            extra = decodeERC20Transfer(voucher.payload); 
+            extra = decodeERC20Transfer(voucher.payload);
         }
         return { ...voucher, extra };
     });
@@ -54,7 +95,6 @@ export async function executeVoucher(signer: Signer, id: string, url = DEFAULT_G
         outputIndex: voucher.index,
     };
     try {
-        // console.log(`Would check: ${JSON.stringify(proof)}`);
         const tx = await outputContract.executeVoucher(
             voucher.destination,
             voucher.payload,

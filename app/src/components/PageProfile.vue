@@ -61,14 +61,22 @@ async function loadBalance(ethTokenAddress, connection) {
     const mint = convertEthAddress2Solana(ethTokenAddress)
     const address = await signer.getAddress()
     const owner = convertEthAddress2Solana(address)
-    // console.log({ owner, mint })
-    const ata = await getAssociatedTokenAddress(mint, owner, true)
-    console.log({ ata: ata.toString() })
-    const tokenAccountInfo = await getAccount(
-        connection,
-        ata
-    )
-    solanaTokenAmount.value = tokenAccountInfo.amount
+
+    try {
+        const ata = await getAssociatedTokenAddress(mint, owner, true)
+        console.log(`Solana associated token address ${ata.toString()}`)
+        const tokenAccountInfo = await getAccount(
+            connection,
+            ata
+        )
+        solanaTokenAmount.value = tokenAccountInfo.amount
+    } catch (e) {
+        if (e?.constructor?.name === 'TokenAccountNotFoundError') {
+            console.log('Account not found')
+        } else {
+            throw e
+        }
+    }
 
     const erc20Contract = IERC20__factory.connect(
         ethTokenAddress,
@@ -140,13 +148,18 @@ async function emitVoucher() {
 async function listVouchers() {
     const url = 'http://localhost:4000/graphql';
     vouchers.value = await loadVouchers(url, {})
-    console.log(vouchers.value)
+    console.log('vouchers', vouchers.value);
 }
 
 async function execVoucher(id) {
     console.log(`execute voucher ${id}`);
     const { signer } = useWorkspace();
-    await executeVoucher(signer, id);
+    try {
+        await executeVoucher(signer, id);
+    } catch (e) {
+        console.error(e)
+        alert(e.message)
+    }
 }
 
 function mask(address) {
@@ -190,7 +203,7 @@ function mask(address) {
                     <th>token</th>
                     <th>recipient</th>
                     <th>amount</th>
-                    <th>#</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -200,7 +213,11 @@ function mask(address) {
                     <td>{{ mask(voucher.extra?.recipient) }}</td>
                     <td>{{ voucher.extra?.amount?.toString() }}</td>
                     <td>
-                        <button class="text-white px-4 py-2 rounded-full font-semibold bg-pink-500" @click="() => execVoucher(voucher.id)">
+                        <button 
+                            :disabled="!voucher.proof"
+                            class="text-white px-4 py-2 rounded-full font-semibold"
+                            :class="voucher.proof ? 'bg-pink-500' : 'bg-pink-300 cursor-not-allowed'"
+                            @click="() => execVoucher(voucher.id)">
                             Exec
                         </button>
                     </td>
@@ -213,3 +230,10 @@ function mask(address) {
     <tweet-form @added="addTweet"></tweet-form>
     <tweet-list v-model:tweets="tweets" :loading="loading" :has-more="hasNextPage" @more="getNextPage"></tweet-list>
 </template>
+
+<style scoped>
+td, th {
+    border: 1px solid #eee;
+    padding: 5px;
+}
+</style>
