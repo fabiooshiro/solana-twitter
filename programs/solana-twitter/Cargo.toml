@@ -19,4 +19,5 @@ default = []
 # anchor-lang = "0.25.0"
 
 # include Cartesi lib
-ctsi_sol = { path = "../../../rollups-examples/solana-adapter/ctsi_sol" }
+# cartesi-solana = { path = "../../../cartesi-solana" }
+cartesi-solana = "0.1.0"
