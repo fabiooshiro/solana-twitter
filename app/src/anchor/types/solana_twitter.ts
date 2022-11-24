@@ -114,6 +114,11 @@ export type SolanaTwitter = {
       "code": 6001,
       "name": "ContentTooLong",
       "msg": "The provided content should be 280 characters long maximum."
+    },
+    {
+      "code": 6002,
+      "name": "Forbidden",
+      "msg": "Forbidden"
     }
   ]
 };
@@ -234,6 +239,11 @@ export const IDL: SolanaTwitter = {
       "code": 6001,
       "name": "ContentTooLong",
       "msg": "The provided content should be 280 characters long maximum."
+    },
+    {
+      "code": 6002,
+      "name": "Forbidden",
+      "msg": "Forbidden"
     }
   ]
 };

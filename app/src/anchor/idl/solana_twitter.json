@@ -114,9 +114,14 @@
       "code": 6001,
       "name": "ContentTooLong",
       "msg": "The provided content should be 280 characters long maximum."
+    },
+    {
+      "code": 6002,
+      "name": "Forbidden",
+      "msg": "Forbidden"
     }
   ],
   "metadata": {
-    "address": "AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE"
+    "address": "DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD"
   }
 }

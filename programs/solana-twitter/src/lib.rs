@@ -6,7 +6,7 @@ use anchor_lang::{self, solana_program::system_program};
 use cartesi_solana::anchor_lang::prelude::*;
 use cartesi_solana::anchor_lang::{self, solana_program::system_program};
 // */
-declare_id!("AsfUa1c9BrGJVvpo2xq712wCGBwpaXrkjhfvhkpg2gyE");
+declare_id!("DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD");
 
 #[program]
 pub mod solana_twitter {
@@ -42,14 +42,19 @@ pub mod solana_twitter {
         if content.chars().count() > 280 {
             return Err(ErrorCode::ContentTooLong.into())
         }
-
+        if tweet.author.key() != ctx.accounts.author.key() {
+            return Err(ErrorCode::Forbidden.into())
+        }
         tweet.topic = topic;
         tweet.content = content;
 
         Ok(())
     }
 
-    pub fn delete_tweet(_ctx: Context<DeleteTweet>) -> Result<()> {
+    pub fn delete_tweet(ctx: Context<DeleteTweet>) -> Result<()> {
+        if ctx.accounts.tweet.author.key() != ctx.accounts.author.key() {
+            return Err(ErrorCode::Forbidden.into())
+        }
         Ok(())
     }
 }
@@ -116,4 +121,6 @@ pub enum ErrorCode {
     TopicTooLong,
     #[msg("The provided content should be 280 characters long maximum.")]
     ContentTooLong,
+    #[msg("Forbidden")]
+    Forbidden,
 }
