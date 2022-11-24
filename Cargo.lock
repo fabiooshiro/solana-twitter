@@ -387,6 +387,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
+name = "cartesi-solana"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9751f9690ebbfd5413ce6e71b5d569b5d5b88350003b37ec249c8304d8a8f570"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "base64 0.13.1",
+ "bincode",
+ "generic-array",
+ "hex",
+ "once_cell",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.76"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -500,21 +517,6 @@ checksum = "b584a330336237c1eecd3e94266efb216c56ed91225d634cb2991c5f3fd1aeab"
 dependencies = [
  "generic-array",
  "subtle",
-]
-
-[[package]]
-name = "ctsi_sol"
-version = "0.1.0"
-dependencies = [
- "anchor-lang",
- "anchor-spl",
- "base64 0.13.1",
- "bincode",
- "generic-array",
- "hex",
- "once_cell",
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -1265,7 +1267,7 @@ dependencies = [
 name = "solana-twitter"
 version = "0.1.0"
 dependencies = [
- "ctsi_sol",
+ "cartesi-solana",
 ]
 
 [[package]]
