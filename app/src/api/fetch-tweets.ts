@@ -10,7 +10,7 @@ export const fetchTweets = async (filters = []) => {
     return tweets.map(tweet => new Tweet(tweet.publicKey, tweet.account))
 }
 
-export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) => {}) => {
+export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) => { }) => {
     filters = ref(filters) as any
     const { program, connection } = useWorkspace()
     const page = ref(0)
@@ -28,10 +28,12 @@ export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) 
 
         const anyFilters = filters as any
         // Prefetch all tweets with their timestamps only.
-        const allTweets = await connection.getProgramAccounts(program.value.programId, {
+        const allTweets = await connection.value.getProgramAccounts(program.value.programId, {
             filters: [tweetDiscriminatorFilter, ...anyFilters.value],
             dataSlice: { offset: 40, length: 8 },
         })
+
+        console.log('ok', allTweets.map(t => t.pubkey.toString()))
 
         // Parse the timestamp from the account's data.
         const allTweetsWithTimestamps = allTweets.map(({ account, pubkey }) => ({
@@ -47,7 +49,8 @@ export const paginateTweets = (filters = [], perPage = 6, onNewPage = (..._any) 
     const pageCb = async (page, paginatedPublicKeys) => {
         const tweets = await program.value.account.tweet.fetchMultiple(paginatedPublicKeys)
         return tweets.reduce((accumulator, tweet, index) => {
-            const publicKey = paginatedPublicKeys[index]
+            const publicKey = paginatedPublicKeys[index];
+            console.log(publicKey.toString(), tweet);
             accumulator.push(new Tweet(publicKey, tweet))
             return accumulator
         }, [])

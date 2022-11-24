@@ -48,6 +48,8 @@ export async function findValidationAddress(daoPubkey: PublicKey, walletPublicKe
 }
 
 export class AdaptedWallet implements Wallet {
+    public connected = false;
+
     public payer = Keypair.fromSecretKey(Uint8Array.from([
         121, 122, 251, 173, 123, 1, 141, 44, 75, 160, 11,
         107, 14, 238, 24, 175, 213, 180, 116, 96, 185, 108,
@@ -56,6 +58,7 @@ export class AdaptedWallet implements Wallet {
         53, 69, 227, 12, 92, 172, 150, 196, 4, 59, 219,
         216, 77, 34, 176, 132, 80, 157, 198, 198
     ]))
+    
     private _publicKey: PublicKey = this.payer.publicKey;
 
     async signTransaction(tx: anchor.web3.Transaction): Promise<anchor.web3.Transaction> {
@@ -377,9 +380,12 @@ export function convertEthAddress2Solana(ethereumAddress: string) {
     return pubkey;
 }
 
-export function getConnection(commitment) {
-    const network = clusterApiUrl('devnet');
-    return new ConnectionAdapter(network, commitment);
+const commitment = 'processed';
+const network = clusterApiUrl('devnet');
+const cachedConnection = new ConnectionAdapter(network, commitment);
+
+export function getConnection(_commitment) {
+    return cachedConnection;
 }
 
 export function getProvider(signer?: ethers.Signer) {

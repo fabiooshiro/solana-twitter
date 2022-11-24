@@ -12,6 +12,7 @@ const preflightCommitment = 'processed'
 const commitment = 'processed'
 const programID = new PublicKey(idl.metadata.address)
 let workspace: any = null
+
 export const useWorkspace = () => {
     return workspace
 }
@@ -19,7 +20,6 @@ export const useWorkspace = () => {
 export const initWorkspace = () => {
     if (isCartesiDAppEnv()) {
         createAdaptedWorkspace();
-        connectWallet().catch(e => console.log(e));
     } else {
         createWorkspace()
     }
@@ -41,13 +41,13 @@ function createWorkspace() {
 
     workspace = {
         wallet,
-        connection,
+        connection: ref(connection),
         provider,
         program,
     }
 }
 
-async function connectWallet() {
+export async function connectMetaMaskWallet() {
     const { ethereum } = window as any;
     if (!ethereum) {
         alert("Get MetaMask!");
@@ -65,12 +65,30 @@ async function connectWallet() {
     // For this, you need the account signer...
     const signer = provider.getSigner()
     console.log("Signer", signer);
-    const { program, provider: providerEth, wallet } = getProgram<SolanaTwitter>(signer, idl)
+    const { program, provider: providerEth, wallet, connection } = getProgram<SolanaTwitter>(signer, idl)
+    connection.etherSigner = signer;
+    connection.wallet = wallet;
     workspace.wallet.value = wallet;
     workspace.program.value = program;
     workspace.provider.value = providerEth;
     workspace.signer = signer;
+    workspace.connection.value = connection;
+    wallet.connected = true
 }
+
+async function checkMetaMaskConnected() {
+    const { ethereum } = window as any;
+    if (!ethereum) {
+        return;
+    }
+    const accounts = await ethereum.request({ method: 'eth_accounts' });
+    if (accounts.length) {
+        connectMetaMaskWallet()
+    }
+    ethereum.on('accountsChanged', checkMetaMaskConnected);
+}
+
+checkMetaMaskConnected()
 
 function createAdaptedWorkspace() {
     try {
@@ -78,7 +96,7 @@ function createAdaptedWorkspace() {
 
         workspace = {
             wallet: ref(wallet),
-            connection: connection,
+            connection: ref(connection),
             provider: ref(providerEth),
             program: ref(program),
         }
