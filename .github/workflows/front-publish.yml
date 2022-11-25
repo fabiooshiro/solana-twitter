@@ -8,8 +8,6 @@ on:
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
@@ -26,8 +24,9 @@ jobs:
         run: |
           ls ${{ github.workspace }}
           cd ./app
-          yarn
+          yarn --frozen-lockfile
           rm -rf ./dist
+          export NODE_ENV=production
           yarn build:devnet
           cd ./dist
           cp ./index.html ./404.html
