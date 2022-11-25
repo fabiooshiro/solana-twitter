@@ -2,6 +2,9 @@ const webpack = require('webpack')
 const { defineConfig } = require('@vue/cli-service')
 
 module.exports = defineConfig({
+    publicPath: process.env.NODE_ENV === 'production'
+        ? '/solana-twitter/'
+        : '/',
     transpileDependencies: true,
     configureWebpack: {
         plugins: [
