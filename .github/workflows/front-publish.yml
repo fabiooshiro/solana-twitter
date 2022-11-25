@@ -26,7 +26,7 @@ jobs:
         run: |
           ls ${{ github.workspace }}
           cd ./app
-          yarn --frozen-lockfile
+          yarn
           rm -rf ./dist
           yarn build:devnet
           cd ./dist
