@@ -1,19 +1,20 @@
 [programs.localnet]
-solana_twitter = "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+solana_twitter = "DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD"
 
 [programs.devnet]
-solana_twitter = "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+solana_twitter = "DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD"
 
 [programs.mainnet]
-solana_twitter = "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+solana_twitter = "DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD"
 
 [registry]
 url = "https://anchor.projectserum.com"
 
 [provider]
 cluster = "localnet"
-wallet = "/Users/loris/.config/solana/id.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
-copy-idl = "mkdir -p app/src/idl && cp target/idl/solana_twitter.json app/src/idl/solana_twitter.json"
+copy-idl = "mkdir -p app/src/anchor/idl && cp target/idl/solana_twitter.json app/src/anchor/idl/solana_twitter.json"
+copy-types = "mkdir -p app/src/anchor/types && cp target/types/solana_twitter.ts app/src/anchor/types/solana_twitter.ts"

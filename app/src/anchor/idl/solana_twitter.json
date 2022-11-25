@@ -8,7 +8,7 @@
         {
           "name": "tweet",
           "isMut": true,
-          "isSigner": true
+          "isSigner": false
         },
         {
           "name": "author",
@@ -28,6 +28,10 @@
         },
         {
           "name": "content",
+          "type": "string"
+        },
+        {
+          "name": "userTweetId",
           "type": "string"
         }
       ]
@@ -110,9 +114,14 @@
       "code": 6001,
       "name": "ContentTooLong",
       "msg": "The provided content should be 280 characters long maximum."
+    },
+    {
+      "code": 6002,
+      "name": "Forbidden",
+      "msg": "Forbidden"
     }
   ],
   "metadata": {
-    "address": "BNDCEb5uXCuWDxJW9BGmbfvR1JBMAKckfhYrEKW2Bv1W"
+    "address": "DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD"
   }
 }

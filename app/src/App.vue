@@ -1,6 +1,6 @@
-<script setup>
+<script setup lang="ts">
 import { useRoute } from 'vue-router'
-import TheSidebar from './components/TheSidebar'
+import TheSidebar from './components/TheSidebar.vue'
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets'
 import { initWallet } from 'solana-wallets-vue'
 import { initWorkspace } from '@/composables'
