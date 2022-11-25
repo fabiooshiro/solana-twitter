@@ -28,7 +28,7 @@ const vouchers = ref([])
 
 watchEffect(() => {
     if (!wallet.value) return;
-    loadBalance(token.value, connection, wallet);
+    loadBalance(token.value, connection.value, wallet);
     listVouchers();
     tweets.value = [];
     filters.value = [authorFilter(wallet.value.publicKey.toBase58())];
@@ -37,7 +37,7 @@ watchEffect(() => {
 
 const amount = ref(0)
 const effectiveToken = computed(() => {
-    loadBalance(token.value, connection, wallet)
+    loadBalance(token.value, connection.value, wallet)
     return token.value
 })
 
