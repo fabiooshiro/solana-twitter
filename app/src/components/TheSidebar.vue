@@ -1,12 +1,12 @@
 <script setup>
 import { ref } from 'vue'
 import { WalletMultiButton, useWallet } from 'solana-wallets-vue'
-import { connectMetaMaskWallet, useWorkspace } from '@/composables/useWorkspace'
+import { connectMetaMaskWallet, useWorkspace, isCartesiDAppEnv } from '@/composables/useWorkspace'
 const { connected: useWalletConnected } = useWallet()
 
 const { wallet } = useWorkspace()
 
-const isCartesi = localStorage.getItem('ctsi_sol') == '1'
+const isCartesi = isCartesiDAppEnv()
 const connected = isCartesi ? ref(wallet.connected) : useWalletConnected;
 
 const isMetaMaskConnected = ref(false)
