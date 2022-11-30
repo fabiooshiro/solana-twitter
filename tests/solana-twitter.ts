@@ -187,7 +187,7 @@ describe('solana-twitter', () => {
         }))
     });
 
-    it('can update a tweet', async () => {
+    xit('can update a tweet', async () => {
         // Send a tweet and fetch its account.
         const author = program.provider.wallet.publicKey;
         const tweet = await sendTweet(author, 'web2', 'Hello World!');

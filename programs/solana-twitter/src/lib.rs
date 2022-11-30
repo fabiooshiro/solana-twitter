@@ -11,17 +11,22 @@ declare_id!("DEVemLxXHPz1tbnBbTVXtvNBHupP2RCBw1jTFN8Uz3FD");
 #[program]
 pub mod solana_twitter {
     use super::*;
-    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String, _user_tweet_id: String) -> Result<()> {
+    pub fn send_tweet(
+        ctx: Context<SendTweet>,
+        topic: String,
+        content: String,
+        _user_tweet_id: String,
+    ) -> Result<()> {
         let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
         let author: &Signer = &ctx.accounts.author;
         let clock: Clock = Clock::get().unwrap();
 
         if topic.chars().count() > 50 {
-            return Err(ErrorCode::TopicTooLong.into())
+            return Err(ErrorCode::TopicTooLong.into());
         }
 
         if content.chars().count() > 280 {
-            return Err(ErrorCode::ContentTooLong.into())
+            return Err(ErrorCode::ContentTooLong.into());
         }
 
         tweet.author = *author.key;
@@ -36,14 +41,14 @@ pub mod solana_twitter {
         let tweet: &mut Account<Tweet> = &mut ctx.accounts.tweet;
 
         if topic.chars().count() > 50 {
-            return Err(ErrorCode::TopicTooLong.into())
+            return Err(ErrorCode::TopicTooLong.into());
         }
 
         if content.chars().count() > 280 {
-            return Err(ErrorCode::ContentTooLong.into())
+            return Err(ErrorCode::ContentTooLong.into());
         }
         if tweet.author.key() != ctx.accounts.author.key() {
-            return Err(ErrorCode::Forbidden.into())
+            return Err(ErrorCode::Forbidden.into());
         }
         tweet.topic = topic;
         tweet.content = content;
@@ -53,7 +58,7 @@ pub mod solana_twitter {
 
     pub fn delete_tweet(ctx: Context<DeleteTweet>) -> Result<()> {
         if ctx.accounts.tweet.author.key() != ctx.accounts.author.key() {
-            return Err(ErrorCode::Forbidden.into())
+            return Err(ErrorCode::Forbidden.into());
         }
         Ok(())
     }
@@ -62,7 +67,7 @@ pub mod solana_twitter {
 #[derive(Accounts)]
 #[instruction(topic: String, content: String, user_tweet_id: String)]
 pub struct SendTweet<'info> {
-    #[account(init, payer = author, space = Tweet::LEN,
+    #[account(init, payer = author, space = Tweet::space(&topic,&content),
         seeds=[
             author.key().as_ref(),
             &user_tweet_id.as_bytes(),
@@ -100,19 +105,27 @@ pub struct Tweet {
     pub content: String,
 }
 
+#[account]
+pub struct Author {
+    pub pubkey: Pubkey,
+    pub slug: String,
+}
+
 const DISCRIMINATOR_LENGTH: usize = 8;
 const PUBLIC_KEY_LENGTH: usize = 32;
 const TIMESTAMP_LENGTH: usize = 8;
 const STRING_LENGTH_PREFIX: usize = 4; // Stores the size of the string.
-const MAX_TOPIC_LENGTH: usize = 50 * 4; // 50 chars max.
-const MAX_CONTENT_LENGTH: usize = 280 * 4; // 280 chars max.
 
 impl Tweet {
     const LEN: usize = DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH // Author.
         + TIMESTAMP_LENGTH // Timestamp.
-        + STRING_LENGTH_PREFIX + MAX_TOPIC_LENGTH // Topic.
-        + STRING_LENGTH_PREFIX + MAX_CONTENT_LENGTH; // Content.
+        + STRING_LENGTH_PREFIX  // Topic.
+        + STRING_LENGTH_PREFIX; // Content.
+
+    pub fn space(topic: &String, content: &String) -> usize {
+        Tweet::LEN + content.len() + topic.len()
+    }
 }
 
 #[error_code]
