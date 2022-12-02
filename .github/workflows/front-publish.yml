@@ -20,16 +20,17 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
-      - name: Deploy gh
+      - name: Build Vue
         run: |
           ls ${{ github.workspace }}
           cd ./app
           yarn --frozen-lockfile
           rm -rf ./dist
+          export NODE_ENV=production
           yarn build:devnet
           cd ./dist
           cp ./index.html ./404.html
-      - name: Deploy
+      - name: Trigger deploy gh-pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
