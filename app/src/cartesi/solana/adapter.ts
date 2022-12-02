@@ -18,7 +18,8 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 //const console = {
 //    log: (..._args: any[]) => {}
 //};
-const DEFAULT_REPORT_URL = `http://127.0.0.1:4000/graphql`;
+export const DEFAULT_GRAPHQL_URL = `${process.env.VUE_APP_CARTESI_GRAPHQL_URL}`;
+const DEFAULT_INSPECT_URL = `${process.env.VUE_APP_CARTESI_INSPECT_URL}`;
 export const programID = new PublicKey(idl.metadata.address);
 const encoder = new TextEncoder()
 
@@ -58,7 +59,7 @@ export class AdaptedWallet implements Wallet {
         53, 69, 227, 12, 92, 172, 150, 196, 4, 59, 219,
         216, 77, 34, 176, 132, 80, 157, 198, 198
     ]))
-    
+
     private _publicKey: PublicKey = this.payer.publicKey;
 
     async signTransaction(tx: anchor.web3.Transaction): Promise<anchor.web3.Transaction> {
@@ -169,7 +170,7 @@ export async function pollingReportResults(receipt: ContractReceipt) {
     console.log(`InputKeys: ${JSON.stringify(inputKeys, null, 4)}`);
     for (let i = 0; i < MAX_REQUESTS; i++) {
         await delay(1000 * (i + 1));
-        const reports = await getReports(DEFAULT_REPORT_URL, inputKeys);
+        const reports = await getReports(DEFAULT_GRAPHQL_URL, inputKeys);
         console.log(`Cartesi reports: ${JSON.stringify(reports, null, 4)}`);
         if (reports.length > 0) {
             return reports.map(r => {
@@ -251,20 +252,24 @@ class ConnectionAdapter extends Connection {
     }
 
     private getInspectBaseURL() {
-        if (typeof window === 'undefined') {
-            return 'http://127.0.0.1:5005/inspect';
-        }
-        let host = window.location.host;
-        const protocol = window.location.protocol;
-        if (/^[0-9]{4}/.test(host)) {
-            // gitpod host
-            host = host.replace(/^[0-9]*/, '5005');
+        if (DEFAULT_INSPECT_URL !== 'detect') {
+            return DEFAULT_INSPECT_URL;
         } else {
-            // localhost like
-            host = host.replace(/:[0-9]+$/, ':5005')
+            if (typeof window === 'undefined') {
+                return 'http://127.0.0.1:5005/inspect';
+            }
+            let host = window.location.host;
+            const protocol = window.location.protocol;
+            if (/^[0-9]{4}/.test(host)) {
+                // gitpod host
+                host = host.replace(/^[0-9]*/, '5005');
+            } else {
+                // localhost like
+                host = host.replace(/:[0-9]+$/, ':5005')
+            }
+            const url = `${protocol}//${host}/inspect`;
+            return url;
         }
-        const url = `${protocol}//${host}/inspect`;
-        return url;
     }
 
     async requestAirdrop(

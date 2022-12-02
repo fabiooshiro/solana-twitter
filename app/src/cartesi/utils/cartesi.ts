@@ -21,7 +21,7 @@ interface Contracts {
     erc20Portal: ERC20PortalFacet;
 }
 
-const contractAddress = '0xF8C694fd58360De278d5fF2276B7130Bfdc0192A';
+const contractAddress = '0xA17BE28F84C89474831261854686a6357B7B9c1E';
 
 /**
  * Connect to instance of Rollups application
