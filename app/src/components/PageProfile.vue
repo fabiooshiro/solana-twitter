@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { paginateTweets, authorFilter } from '@/api'
 import TweetForm from '@/components/TweetForm'
 import TweetList from '@/components/TweetList'
-import { useWorkspace } from '@/composables'
+import { useWorkspace, isCartesiDAppEnv } from '@/composables'
 import { cartesiRollups } from '@/cartesi/utils/cartesi'
 import { IERC20__factory } from "@cartesi/rollups";
 import * as anchor from "@project-serum/anchor";
@@ -12,12 +12,12 @@ import { loadVouchers, executeVoucher } from "@/cartesi/utils/vouchers";
 
 import { convertEthAddress2Solana } from '@/cartesi/solana/adapter'
 import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
-//import { PublicKey } from '@solana/web3.js';
 
 const tweets = ref([])
 const { wallet, connection } = useWorkspace()
 
 const filters = ref([])
+const isCartesi = isCartesiDAppEnv()
 
 const onNewPage = newTweets => tweets.value.push(...newTweets)
 const { prefetch, hasNextPage, getNextPage, loading } = paginateTweets(filters, 10, onNewPage)
@@ -175,7 +175,7 @@ function mask(address) {
     <div v-if="wallet" class="border-b px-8 py-4 bg-gray-50 break-all">
         {{ wallet.publicKey.toBase58() }}
     </div>
-    <div class="border-b px-8 py-4 break-all">
+    <div v-if="isCartesi" class="border-b px-8 py-4 break-all">
         <input type="text" placeholder="token" class="text-pink-500 rounded-full pl-10 pr-4 py-2 bg-gray-100"
             :value="effectiveToken" @input="token = $event.target.value">
         <div class="py-4 break-all">

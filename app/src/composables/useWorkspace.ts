@@ -25,7 +25,7 @@ export const initWorkspace = () => {
     }
 }
 
-function isCartesiDAppEnv() {
+export function isCartesiDAppEnv() {
     return localStorage.getItem('ctsi_sol') === '1'
 }
 

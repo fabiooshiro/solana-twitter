@@ -2,6 +2,8 @@
 
 This is the best twitter ever.
 
+Check the development version deployed on [github pages](https://fabiooshiro.github.io/solana-twitter/#/).
+
 Build
 ```shell
 anchor build
