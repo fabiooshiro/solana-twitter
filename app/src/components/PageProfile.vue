@@ -146,8 +146,7 @@ async function emitVoucher() {
 }
 
 async function listVouchers() {
-    const url = 'http://localhost:4000/graphql';
-    vouchers.value = await loadVouchers(url, {})
+    vouchers.value = await loadVouchers({})
     console.log('vouchers', vouchers.value);
 }
 
