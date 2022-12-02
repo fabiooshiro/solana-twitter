@@ -5,6 +5,7 @@ import { cartesiRollups } from "./cartesi";
 import { OutputValidityProofStruct } from "@cartesi/rollups/dist/src/types/contracts/interfaces/IOutput";
 import { createClient, defaultExchanges, gql } from '@urql/core';
 import fetch from "cross-fetch";
+import { DEFAULT_GRAPHQL_URL } from "../solana/adapter";
 
 const VouchersQuery = gql`
   query listVouchers($first: Int, $last: Int, $after: String, $before: String, $where: VoucherFilter) {
@@ -26,9 +27,6 @@ const VouchersQuery = gql`
     }
   }
 `;
-
-
-const DEFAULT_GRAPHQL_URL = 'http://localhost:4000/graphql'
 
 async function getVouchersWithProof(url: string, _inputKeys: InputKeys) {
     const client = createClient({ url, exchanges: defaultExchanges, fetch });
@@ -70,8 +68,8 @@ function decodeERC20Transfer(payload: string) {
     }
 }
 
-export async function loadVouchers(url: string, inputKeys: InputKeys) {
-    const vouchers = await getVouchersWithProof(url, inputKeys);
+export async function loadVouchers(inputKeys: InputKeys) {
+    const vouchers = await getVouchersWithProof(DEFAULT_GRAPHQL_URL, inputKeys);
 
     return vouchers.map(voucher => {
         let extra: any = {};
@@ -82,9 +80,9 @@ export async function loadVouchers(url: string, inputKeys: InputKeys) {
     });
 }
 
-export async function executeVoucher(signer: Signer, id: string, url = DEFAULT_GRAPHQL_URL) {
+export async function executeVoucher(signer: Signer, id: string) {
     const { outputContract } = await cartesiRollups(signer);
-    const voucher = await getVoucher(url, id);
+    const voucher = await getVoucher(DEFAULT_GRAPHQL_URL, id);
     if (!voucher.proof) {
         throw new Error(`Voucher "${id}" has no associated proof yet`);
     }

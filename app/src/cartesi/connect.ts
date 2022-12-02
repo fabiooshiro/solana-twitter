@@ -21,7 +21,8 @@ export interface Args {
 const HARDHAT_DEFAULT_MNEMONIC =
     "test test test test test test test test test test test junk";
 
-const HARDHAT_DEFAULT_RPC_URL = "http://localhost:8545";
+// const HARDHAT_DEFAULT_RPC_URL = "http://localhost:8545";
+const HARDHAT_DEFAULT_RPC_URL = "https://goerli.infura.io/v3/501b4a58738b45919b9c27d709fd624d";
 
 export type Connection = {
     provider: Provider;
