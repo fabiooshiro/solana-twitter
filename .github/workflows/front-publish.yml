@@ -23,6 +23,7 @@ jobs:
       - name: Build Vue
         run: |
           ls ${{ github.workspace }}
+          npm ci
           cd ./app
           npm ci
           rm -rf ./dist
