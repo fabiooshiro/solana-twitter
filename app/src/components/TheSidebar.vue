@@ -51,6 +51,16 @@ function mask(address) {
     return address.substring(0, 6) + '..' + address.substring(address.length - 4);
 }
 
+function changeToCartesi() {
+    localStorage.setItem('ctsi_sol', '1')
+    location.reload()
+}
+
+function changeToSolana() {
+    localStorage.setItem('ctsi_sol', '0')
+    location.reload()
+}
+
 </script>
 
 <template>
@@ -138,6 +148,18 @@ function mask(address) {
         </div>
         <div v-else class="fixed bottom-8 right-8 md:static w-48 md:w-full">
             <wallet-multi-button></wallet-multi-button>
+        </div>
+        <div class="fixed bottom-8 right-8 md:static w-48 md:w-full">
+            <button v-if="isCartesi"
+                class="text-white px-4 py-2 rounded-full font-semibold bg-pink-500 w-full"
+                @click="changeToSolana">
+                Change to Solana
+            </button>
+            <button v-else
+                class="text-white px-4 py-2 rounded-full font-semibold bg-pink-500 w-full"
+                @click="changeToCartesi">
+                Change to Cartesi
+            </button>
         </div>
     </aside>
 </template>

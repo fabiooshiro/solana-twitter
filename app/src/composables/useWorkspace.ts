@@ -4,14 +4,25 @@ import { Connection, PublicKey } from '@solana/web3.js'
 import { AnchorProvider, Program } from '@project-serum/anchor'
 import { ethers } from "ethers";
 import idl from '@/anchor/idl/solana_twitter.json'
-import { getProgram } from '../cartesi/solana/adapter';
 import { SolanaTwitter } from '@/anchor/types/solana_twitter';
+import Factory from 'solana-cartesi-web3-adapter';
 
 const clusterUrl = process.env.VUE_APP_CLUSTER_URL as any
 const preflightCommitment = 'processed'
 const commitment = 'processed'
 const programID = new PublicKey(idl.metadata.address)
 let workspace: any = null
+
+const config = {
+    inspectURL: `${process.env.VUE_APP_CARTESI_INSPECT_URL}`,
+    graphqlURL: `${process.env.VUE_APP_CARTESI_GRAPHQL_URL}`,
+    contractAddress: '0xA17BE28F84C89474831261854686a6357B7B9c1E',
+    report: {
+        maxRetry: 10,
+        baseDelay: 1000,
+    },
+}
+const factory = new Factory(config);
 
 export const useWorkspace = () => {
     return workspace
@@ -65,15 +76,18 @@ export async function connectMetaMaskWallet() {
     // For this, you need the account signer...
     const signer = provider.getSigner()
     console.log("Signer", signer);
-    const { program, provider: providerEth, wallet, connection } = getProgram<SolanaTwitter>(signer, idl)
-    connection.etherSigner = signer;
-    connection.wallet = wallet;
+    await factory.onWalletConnected(signer);
+    
+    const { program, provider: providerEth, wallet, connection } = factory.getWorkspace<SolanaTwitter>({idl: idl as any, signer});
+    if (!workspace) {
+        createAdaptedWorkspace()
+    }
     workspace.wallet.value = wallet;
     workspace.program.value = program;
     workspace.provider.value = providerEth;
     workspace.signer = signer;
     workspace.connection.value = connection;
-    wallet.connected = true
+    (wallet as any).connected = true;
 }
 
 async function checkMetaMaskConnected() {
@@ -92,12 +106,11 @@ checkMetaMaskConnected()
 
 function createAdaptedWorkspace() {
     try {
-        const { connection, program, provider: providerEth, wallet } = getProgram<SolanaTwitter>(undefined, idl)
-
+        const { connection, wallet, provider, program } = factory.getWorkspace<SolanaTwitter>({ idl: idl as any })
         workspace = {
             wallet: ref(wallet),
             connection: ref(connection),
-            provider: ref(providerEth),
+            provider: ref(provider),
             program: ref(program),
         }
     } catch (error) {
