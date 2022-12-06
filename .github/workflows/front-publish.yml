@@ -24,10 +24,10 @@ jobs:
         run: |
           ls ${{ github.workspace }}
           cd ./app
-          yarn --frozen-lockfile
+          npm ci
           rm -rf ./dist
           export NODE_ENV=production
-          yarn build:devnet
+          npm run build:devnet
           cd ./dist
           cp ./index.html ./404.html
       - name: Trigger deploy gh-pages
