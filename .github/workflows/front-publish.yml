@@ -19,13 +19,12 @@ jobs:
       - name: Setup nodejs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: Build Vue
         run: |
           ls ${{ github.workspace }}
           npm ci
           cd ./app
-          npm ci
           rm -rf ./dist
           export NODE_ENV=production
           npm run build:devnet
