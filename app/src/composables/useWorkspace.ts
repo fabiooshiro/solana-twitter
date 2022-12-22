@@ -4,14 +4,25 @@ import { Connection, PublicKey } from '@solana/web3.js'
 import { AnchorProvider, Program } from '@project-serum/anchor'
 import { ethers } from "ethers";
 import idl from '@/anchor/idl/solana_twitter.json'
-import { getProgram } from '../cartesi/solana/adapter';
 import { SolanaTwitter } from '@/anchor/types/solana_twitter';
+import { getWorkspace, DevWorkspaceArgs, onWalletConnected } from 'solana-cartesi-web3-adapter';
 
 const clusterUrl = process.env.VUE_APP_CLUSTER_URL as any
 const preflightCommitment = 'processed'
 const commitment = 'processed'
 const programID = new PublicKey(idl.metadata.address)
 let workspace: any = null
+
+const config: DevWorkspaceArgs<SolanaTwitter> = {
+    idl: idl as any,
+    inspectURL: `${process.env.VUE_APP_CARTESI_INSPECT_URL}`,
+    graphqlURL: `${process.env.VUE_APP_CARTESI_GRAPHQL_URL}`,
+    contractAddress: '0xA17BE28F84C89474831261854686a6357B7B9c1E',
+    report: {
+        maxRetry: 10,
+        baseDelay: 1000,
+    },
+}
 
 export const useWorkspace = () => {
     return workspace
@@ -65,18 +76,24 @@ export async function connectMetaMaskWallet() {
     // For this, you need the account signer...
     const signer = provider.getSigner()
     console.log("Signer", signer);
-    const { program, provider: providerEth, wallet, connection } = getProgram<SolanaTwitter>(signer, idl)
-    connection.etherSigner = signer;
-    connection.wallet = wallet;
+    await onWalletConnected({ ...config, signer });
+
+    const { program, provider: providerEth, wallet, connection } = getWorkspace<SolanaTwitter>({ ...config, signer });
+    if (!workspace) {
+        workspace = {}
+    }
     workspace.wallet.value = wallet;
     workspace.program.value = program;
     workspace.provider.value = providerEth;
     workspace.signer = signer;
     workspace.connection.value = connection;
-    wallet.connected = true
+    workspace.wallet.value.connected = true;
 }
 
 async function checkMetaMaskConnected() {
+    if (!isCartesiDAppEnv()) {
+        return;
+    }
     const { ethereum } = window as any;
     if (!ethereum) {
         return;
@@ -92,12 +109,11 @@ checkMetaMaskConnected()
 
 function createAdaptedWorkspace() {
     try {
-        const { connection, program, provider: providerEth, wallet } = getProgram<SolanaTwitter>(undefined, idl)
-
+        const { connection, wallet, provider, program } = getWorkspace<SolanaTwitter>(config)
         workspace = {
             wallet: ref(wallet),
             connection: ref(connection),
-            provider: ref(providerEth),
+            provider: ref(provider),
             program: ref(program),
         }
     } catch (error) {

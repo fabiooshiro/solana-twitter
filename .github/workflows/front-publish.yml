@@ -19,15 +19,15 @@ jobs:
       - name: Setup nodejs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: Build Vue
         run: |
           ls ${{ github.workspace }}
+          npm ci
           cd ./app
-          yarn --frozen-lockfile
           rm -rf ./dist
           export NODE_ENV=production
-          yarn build:devnet
+          npm run build:devnet
           cd ./dist
           cp ./index.html ./404.html
       - name: Trigger deploy gh-pages
