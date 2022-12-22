@@ -1,8 +1,9 @@
 <script setup>
 import { computed, ref, toRefs } from 'vue'
-import { useAutoresizeTextarea, useCountCharacterLimit, useSlug } from '@/composables'
+import { useWallet } from 'solana-wallets-vue'
+import { useWorkspace, useAutoresizeTextarea, useCountCharacterLimit, useSlug } from '@/composables'
 import { sendTweet } from '@/api'
-// import { useWallet } from 'solana-wallets-vue'
+const { connected: useWalletConnected } = useWallet()
 
 // Props.
 const props = defineProps({
@@ -28,8 +29,8 @@ const characterLimitColour = computed(() => {
     return 'text-gray-400'
 })
 
-// Permissions.
-const { connected } = { connected: true }//useWallet()
+const { wallet } = useWorkspace()
+
 const canTweet = computed(() => content.value && characterLimit.value > 0)
 
 // Actions.
@@ -44,7 +45,7 @@ const send = async () => {
 </script>
 
 <template>
-    <div v-if="connected" class="px-8 py-4 border-b">
+    <div v-if="useWalletConnected || wallet?.connected" class="px-8 py-4 border-b">
 
         <!-- Content field. -->
         <textarea ref="textarea" rows="1" class="text-xl w-full focus:outline-none resize-none mb-3"

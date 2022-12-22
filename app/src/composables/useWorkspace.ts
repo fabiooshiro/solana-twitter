@@ -87,10 +87,13 @@ export async function connectMetaMaskWallet() {
     workspace.provider.value = providerEth;
     workspace.signer = signer;
     workspace.connection.value = connection;
-    (wallet as any).connected = true;
+    workspace.wallet.value.connected = true;
 }
 
 async function checkMetaMaskConnected() {
+    if (!isCartesiDAppEnv()) {
+        return;
+    }
     const { ethereum } = window as any;
     if (!ethereum) {
         return;

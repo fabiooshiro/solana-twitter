@@ -5,7 +5,7 @@
     },
     "dependencies": {
         "@project-serum/anchor": "^0.21.0",
-        "solana-cartesi-web3-adapter": "file:../solana-cartesi-web3-adapter/solana-cartesi-web3-adapter-0.2.0.tgz"
+        "solana-cartesi-web3-adapter": "0.2.0"
     },
     "devDependencies": {
         "@types/mocha": "^9.0.0",
