@@ -25,7 +25,6 @@
     "ethers": "^5.7.2",
     "graphql": "^16.6.0",
     "postcss": "^8.4.1",
-    "solana-cartesi-web3-adapter": "^0.1.0",
     "solana-wallets-vue": "^0.3.2",
     "tailwindcss": "^2.2.19",
     "vue": "^3.2.13",
